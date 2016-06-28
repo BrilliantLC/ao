@@ -119,10 +119,10 @@ class SensorEventListeners implements SensorEventListener {
     float z;
     int counter = 0;
     int prev = 0;
-    int state= 0;
+    int state= 2;
     float[] mag, acc, rot;
     double orientation;
-    double prevor = 0;
+    double prevor = orientation;
     int nscounter, wecounter = 0;
     //three constructor parameters
     public SensorEventListeners(TextView outputView, TextView dirView, LineGraphView grp, int stp) {
@@ -170,19 +170,22 @@ class SensorEventListeners implements SensorEventListener {
                     }
                     if (orientation<=45 || orientation>315){
                         direction.setText("NORTH");
+
                     }else if(orientation>45 && orientation <= 135){
                         direction.setText("WEST");
-                    }else if(orientation>135 && orientation <= 225){
+                        prevor = orientation;                    }else if(orientation>135 && orientation <= 225){
                             direction.setText("SOUTH");
+
                     }else if(orientation>225 && orientation <= 315){
                             direction.setText("EAST");
+
                     }
 
 //                    output.setText("" + orientation);
                 }
         }
         double diff = orientation - prevor;
-        double avg = orientation + prevor/2;
+        double avg = (orientation + prevor)/2;
 
         if (se.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
             //plot the graph
@@ -197,34 +200,40 @@ class SensorEventListeners implements SensorEventListener {
             }else{
                 state = 2;  //state 2, where the acceleration is in-between the boundaries
             }
+            if (state == 2){prevor = orientation;}
             //if acceleration is increasing from -4 to 4
-            if(prev==0 && state==1){
+            if((prev==2 && state==1) || (prev==0 && state ==1)){
                 counter++;  //register as 1 step
                 prev = state;  //sets previous state to the current state
                 if (avg< 45 || avg > 315  ){
                     nscounter++;
 
 
-                }else if (avg < 202.5 && avg >157.5 && (Math.abs(diff) > 270) ){
+
+                }else if (avg <= 202.5 && avg >157.5 && (Math.abs(diff) > 270) ){
                     nscounter++;
+
                 }
-                else if(avg> 135 && avg < 225){
+                else if(avg> 135 && avg <= 225){
                     nscounter--;
+
                 }
-                else if(avg> 225 && avg < 315){
+                else if(avg> 225 && avg <= 315){
                     wecounter++;
+
                 }
-                else if(avg>45 && avg < 135){
+                else if(avg>45 && avg <= 135){
                     wecounter--;
+
 
                 }
                 //if acceleration is decreasing from 4 to -4
             }else if (prev == 1 && state == 0){
                 prev = state;
-                prevor = orientation;
+//                prevor = orientation;
+                }
             }
-        }
-        output.setText(""+"ori"+orientation+ "\n average"+avg+"\nstep"+counter+"\nNS"+nscounter+"\nWE"+wecounter);
+        output.setText(""+"ori"+orientation+ "\n average"+avg+"\nstep"+counter+"\nNS"+nscounter+"\nWE"+wecounter + (prevor == orientation));
 
     }
 }
